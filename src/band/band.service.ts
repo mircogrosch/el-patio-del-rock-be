@@ -4,23 +4,39 @@ import { UpdateBandDto } from './dto/update-band.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Band } from './entities/band.entity';
 import { Repository } from 'typeorm';
+import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 
 @Injectable()
 export class BandService {
   constructor(
     @InjectRepository(Band)
     private readonly bandRepository: Repository<Band>,
+    private cloudinaryService: CloudinaryService
   ) {}
-  async create(createBandDto: CreateBandDto) {
-    const newBand = this.bandRepository.create(createBandDto);
+ async create(createBandDto: CreateBandDto, file: Express.Multer.File) {
+    const result = await this.cloudinaryService.uploadFile(file);
+    const newBand = this.bandRepository.create({
+      ...createBandDto,
+      imgDesktop: result.secure_url, 
+      imgMobile: result.secure_url,  
+    });
+
     return await this.bandRepository.save(newBand);
   }
 
-  async findAll() {
-    return await this.bandRepository.find({
-      order: { name: 'ASC' },
-    });
+async findAll(query: { search?: string }) {
+  const { search } = query;
+
+  const queryBuilder = this.bandRepository
+    .createQueryBuilder('band')
+    .orderBy('band.name', 'ASC'); 
+
+  if (search) {
+    queryBuilder.andWhere('band.name ILike :search', { search: `%${search}%` });
   }
+
+  return await queryBuilder.getMany();
+}
 
   async findOne(id: number) {
     // Agregamos 'shows' a las relaciones
@@ -38,11 +54,21 @@ export class BandService {
     return band;
   }
 
-  async update(id: number, updateBandDto: UpdateBandDto) {
-    const band = await this.findOne(id);
-    const updatedBand = this.bandRepository.merge(band, updateBandDto);
-    return await this.bandRepository.save(updatedBand);
+ async update(id: number, updateBandDto: CreateBandDto, file?: Express.Multer.File) {
+  const band = await this.bandRepository.findOneBy({ id });
+  if (!band) throw new NotFoundException('Banda no encontrada');
+
+  // Si viene un archivo nuevo, lo subimos a Cloudinary y pisamos la URL
+  if (file) {
+    const result = await this.cloudinaryService.uploadFile(file);
+    band.imgDesktop = result.secure_url;
+    band.imgMobile = result.secure_url;
   }
+
+  Object.assign(band, updateBandDto);
+
+  return await this.bandRepository.save(band);
+}
 
   async remove(id: number) {
     const band = await this.findOne(id);

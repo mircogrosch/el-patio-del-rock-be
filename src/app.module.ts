@@ -12,14 +12,21 @@ import { SeedModule } from './seed/seed.module';
 import { PaymentsModule } from './payments/payments.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { MailerModule } from '@nestjs-modules/mailer';
+import { AuthModule } from './auth/auth.module';
+import { UsersModule } from './users/users.module';
+import { User } from './users/entities/user.entity';
+import { DashboardModule } from './dashboard/dashboard.module';
+import { CloudinaryModule } from './cloudinary/cloudinary.module';
 @Module({
   imports: [
-    ConfigModule.forRoot(),
+    ConfigModule.forRoot({
+      isGlobal:true
+    }),
     ScheduleModule.forRoot(),
     TypeOrmModule.forRoot({
       type: 'postgres',
       url: process.env.DATABASE_URL,
-      entities: [Band, Show, Reservation],
+      entities: [Band, Show, Reservation,User],
       synchronize: true, // ¡Ojo! Solo para desarrollo, crea las tablas automáticamente
       ssl: {
         rejectUnauthorized: false,
@@ -44,6 +51,10 @@ import { MailerModule } from '@nestjs-modules/mailer';
     ReservationsModule,
     SeedModule,
     PaymentsModule,
+    AuthModule,
+    UsersModule,
+    DashboardModule,
+    CloudinaryModule
   ],
 })
 export class AppModule {}

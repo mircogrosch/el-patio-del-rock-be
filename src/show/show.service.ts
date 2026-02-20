@@ -135,6 +135,7 @@ export class ShowService {
         .toUpperCase()
         .replace('.', ''),
       date: dateObj.getUTCDate().toString().padStart(2, '0'),
+      fullDate: dateObj,
       band: show.band.name,
       genre: show.band.genre,
       description: show.band.description,
@@ -153,8 +154,25 @@ export class ShowService {
     return show;
   }
 
-  update(id: number, updateShowDto: UpdateShowDto) {
-    return `This action updates a #${id} show`;
+  async update(id: number, updateShowDto: CreateShowDto) {
+   // 1. Buscamos el show
+  const show = await this.showRepository.findOne({ 
+    where: { id },
+    relations: ['band'] 
+  });
+  if (!show) throw new NotFoundException('Show no encontrado');
+
+  // 2. Si cambian la banda, buscamos la nueva
+  if (updateShowDto.bandId) {
+    const band = await this.bandRepository.findOneBy({ id: updateShowDto.bandId });
+    if (!band) throw new NotFoundException('La nueva banda no existe');
+    show.band = band;
+  }
+
+  // 3. Pisamos el resto de los campos
+  Object.assign(show, updateShowDto);
+
+  return await this.showRepository.save(show);
   }
 
   async remove(id: number) {
