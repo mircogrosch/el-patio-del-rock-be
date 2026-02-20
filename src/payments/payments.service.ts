@@ -57,7 +57,10 @@ export class PaymentsService {
               reservation.email,
               String(reservation.id),
               reservation.show.band.name,
-              reservation.customerName
+              reservation.spots,
+              reservation.show.startTime,
+              reservation.show.endTime,
+              reservation.spots * reservation.show.price
             );
           }
         }
@@ -70,28 +73,58 @@ export class PaymentsService {
     customerEmail: string,
     reservationId: string,
     showName: string,
-    customerName: string
+    spots: number,
+    showDate: string,
+    showTime: string,
+    totalPrice:number
   ) {
     const qrCodeDataUrl = await QRCode.toDataURL(reservationId);
     await this.mailerService.sendMail({
-      to: customerEmail,
-      subject: `¡Tu reserva para ${showName}! - El Patio del Rock`,
-      html: `
-        <div style="text-align: center; font-family: sans-serif;">
-          <h1>¡Hola 👋! ${customerName} </h1>
-          <p>Presentá este código QR en la entrada para: <strong>${showName}</strong></p>
-          <img src="cid:ticket_qr" style="width: 250px;" />
-        </div>
-      `,
-      attachments: [
-        {
-          filename: 'ticket-qr.png',
-          content: qrCodeDataUrl.split('base64,')[1],
-          encoding: 'base64',
-          cid: 'ticket_qr',
-        },
-      ],
-    });
+  to: customerEmail,
+  subject: `🤘 ¡Confirmado! Tu entrada para ${showName}`,
+  html: `
+    <div style="max-width: 500px; margin: 0 auto; font-family: 'Helvetica', Arial, sans-serif; background-color: #0a0a0a; color: #ffffff; padding: 30px; border: 1px solid #27272a;">
+      
+      <div style="text-align: center; border-bottom: 2px solid #dc2626; padding-bottom: 20px; margin-bottom: 20px;">
+        <h1 style="text-transform: uppercase; letter-spacing: -1px; margin: 0; font-size: 28px;">¡Estás <span style="color: #dc2626;">adentro</span>!</h1>
+        <p style="font-size: 12px; color: #71717a; text-transform: uppercase; letter-spacing: 2px; margin-top: 5px;">Confirmación de Reserva #${reservationId}</p>
+      </div>
+
+      <div style="margin-bottom: 25px;">
+        <h2 style="margin: 0; font-size: 20px; color: #f4f4f5;">${showName}</h2>
+        <p style="margin: 5px 0; color: #dc2626; font-weight: bold;">${showDate} — ${showTime} hs</p>
+        <p style="margin: 0; color: #a1a1aa;">${spots} entradas — Total: $${totalPrice}</p>
+      </div>
+
+      <div style="background-color: #ffffff; padding: 20px; text-align: center; border-radius: 4px;">
+        <img src="cid:ticket_qr" style="width: 200px; height: 200px;" />
+        <p style="color: #0a0a0a; font-size: 10px; font-weight: bold; margin-top: 10px; text-transform: uppercase;">Presentá este código en la puerta</p>
+      </div>
+
+      <div style="margin-top: 30px; background-color: #18181b; padding: 20px; border-left: 4px solid #dc2626;">
+        <h3 style="margin-top: 0; font-size: 14px; text-transform: uppercase; color: #dc2626;">Reglas de la Casa:</h3>
+        <ul style="font-size: 12px; color: #d4d4d8; padding-left: 18px; line-height: 1.6;">
+          <li><strong>Puntualidad:</strong> Abrimos puertas 30 min antes. Si el show arranca y no estás, podemos reasignar tu lugar.</li>
+          <li><strong>Ubicación:</strong> Los asientos son por orden de llegada.</li>
+          <li><strong>Cambios:</strong> No hay reembolsos. Podés cambiar tu fecha avisando con 24hs de antelación a <a href="mailto:reservas@elpatiodelrock.com" style="color: #dc2626;">nuestro mail</a>.</li>
+          <li><strong>Consumo:</strong> Mínimo una bebida por persona durante el show.</li>
+        </ul>
+      </div>
+
+      <div style="margin-top: 30px; text-align: center;">
+        <p style="font-size: 10px; color: #52525b; text-transform: uppercase;">El Patio del Rock — Av Fontana y Perito Moreno, Trevelin Patagonia</p>
+      </div>
+    </div>
+  `,
+  attachments: [
+    {
+      filename: 'ticket-qr.png',
+      content: qrCodeDataUrl.split('base64,')[1],
+      encoding: 'base64',
+      cid: 'ticket_qr',
+    },
+  ],
+});
   }
   findAll() {
     return `This action returns all payments`;

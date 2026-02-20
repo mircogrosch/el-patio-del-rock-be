@@ -88,7 +88,7 @@ export class ReservationsService {
       await this.reservationRepository.save(newReservation);
     const preferenceUrl = await this.mercadoPagoServices.createPreference({
       bandName: show.band.name,
-      unitPrice: newReservationSaved.show.price,
+      unitPrice: newReservationSaved.show.price * createReservationDto.spots,
       reservationId: newReservationSaved.id,
       customerEmail: createReservationDto.email,
       customerName: createReservationDto.customerName,
