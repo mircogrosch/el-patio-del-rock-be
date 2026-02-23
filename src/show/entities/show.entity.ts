@@ -1,7 +1,11 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany } from 'typeorm';
 import { Band } from '../../band/entities/band.entity';
 import { Reservation } from '../../reservations/entities/reservation.entity';
-
+export enum ShowStatus {
+  PUBLICADO = 'PUBLICADO',
+  FINALIZADO = 'FINALIZADO',
+  CANCELADO = 'CANCELADO',
+}
 @Entity()
 export class Show {
   @PrimaryGeneratedColumn()
@@ -27,4 +31,11 @@ export class Show {
 
   @OneToMany(() => Reservation, (reservation) => reservation.show)
   reservations: Reservation[];
+
+  @Column({
+    type: 'enum',
+    enum: ShowStatus,
+    default: ShowStatus.PUBLICADO,
+  })
+  status: ShowStatus
 }

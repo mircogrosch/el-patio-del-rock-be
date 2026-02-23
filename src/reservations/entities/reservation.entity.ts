@@ -34,6 +34,9 @@ export class Reservation {
 
   @ManyToOne(() => Show, (show) => show.reservations)
   show: Show;
+  
+  @Column({ default: false })
+  checkedIn: boolean;
 
   @CreateDateColumn()
   createdAt: Date;

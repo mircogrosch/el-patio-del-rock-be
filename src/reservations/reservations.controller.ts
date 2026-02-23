@@ -58,4 +58,10 @@ export class ReservationsController {
   remove(@Param('id') id: string) {
     return this.reservationsService.remove(+id);
   }
+
+  @Roles('admin')
+  @Patch(':id/check-in')
+  checkIn(@Param('id') id: string) {
+    return this.reservationsService.toggleCheckIn(+id);
+  }
 }

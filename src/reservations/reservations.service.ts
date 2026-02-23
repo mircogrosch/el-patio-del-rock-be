@@ -112,7 +112,7 @@ export class ReservationsService {
         new Brackets((qb) => {
           qb.where('res.customerName ILike :search', {
             search: `%${search}%`,
-          })
+          });
         }),
       );
     }
@@ -138,6 +138,14 @@ export class ReservationsService {
       where: { id },
       relations: ['show', 'show.band'], // Traemos el show y la banda asociada
     });
+  }
+
+  async toggleCheckIn(id: number) {
+    const reservation = await this.reservationRepository.findOneBy({ id });
+    if (!reservation) throw new NotFoundException('Reserva no encontrada');
+
+    reservation.checkedIn = !reservation.checkedIn;
+    return await this.reservationRepository.save(reservation);
   }
 
   async updateStatus(id: string, status: ReservationStatus) {

@@ -1,12 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Reservation } from 'src/reservations/entities/reservation.entity';
-import { Show } from 'src/show/entities/show.entity';
+import {
+  Reservation,
+  ReservationStatus,
+} from 'src/reservations/entities/reservation.entity';
+import { Show, ShowStatus } from 'src/show/entities/show.entity';
 import { MoreThanOrEqual, Repository } from 'typeorm';
 
 @Injectable()
 export class DashboardService {
-    constructor(
+  constructor(
     @InjectRepository(Reservation) private resRepo: Repository<Reservation>,
     @InjectRepository(Show) private showRepo: Repository<Show>,
   ) {}
@@ -15,8 +18,7 @@ export class DashboardService {
     const today = new Date();
     today.setUTCHours(0, 0, 0, 0);
 
-    // 1. Recaudación Total (Sólo reservas PAID)
-    // Usamos QueryBuilder para multiplicar spots * precio del show
+    //  Recaudación Total (Sólo reservas PAID)
     const { totalRevenue } = await this.resRepo
       .createQueryBuilder('res')
       .leftJoin('res.show', 'show')
@@ -24,30 +26,36 @@ export class DashboardService {
       .select('SUM(res.spots * show.price)', 'totalRevenue')
       .getRawOne();
 
-    // 2. Reservas Activas (Total de personas que ya pagaron)
+    //  Reservas Activas (Total de personas que ya pagaron)
     const { totalSpots } = await this.resRepo
       .createQueryBuilder('res')
       .where('res.status = :status', { status: 'PAID' })
       .select('SUM(res.spots)', 'totalSpots')
       .getRawOne();
 
-    // 3. Conteo de Shows próximos
+    // Conteo de Shows próximos (Solo los que están PUBLICADOS)
     const upcomingShowsCount = await this.showRepo.count({
-      where: { date: MoreThanOrEqual(today) }
+      where: {
+        date: MoreThanOrEqual(today),
+        status: ShowStatus.PUBLICADO,
+      },
     });
 
-    // 4. Últimas 5 reservas para la lista rápida
+    //  Últimas 5 reservas
     const latestReservations = await this.resRepo.find({
       relations: ['show', 'show.band'],
       order: { createdAt: 'DESC' },
-      take: 5
+      take: 5,
     });
 
-    // 5. Highlight: El show más cercano
+    //  El show más cercano
     const nextShow = await this.showRepo.findOne({
-      where: { date: MoreThanOrEqual(today) },
+      where: {
+        date: MoreThanOrEqual(today),
+        status: ShowStatus.PUBLICADO,
+      },
       relations: ['band', 'reservations'],
-      order: { date: 'ASC' }
+      order: { date: 'ASC' },
     });
 
     return {
@@ -55,16 +63,28 @@ export class DashboardService {
       activeReservations: Number(totalSpots) || 0,
       upcomingShowsCount,
       latestReservations,
-      nextShow: nextShow ? this.mapNextShow(nextShow) : null
+      nextShow: nextShow ? this.mapNextShow(nextShow) : null,
     };
   }
 
   private mapNextShow(show: Show) {
-    const occupied = show.reservations?.reduce((acc, r) => acc + r.spots, 0) || 0;
+    const occupied = show.reservations
+      ? show.reservations
+          .filter((r) => r.status === ReservationStatus.PAID)
+          .reduce((acc, r) => acc + r.spots, 0)
+      : 0;
+
     return {
+      id: show.id,
       bandName: show.band.name,
+      genre: show.band.genre,
+      date: show.date,
+      startTime: show.startTime,
+      endTime: show.endTime,
+      price: show.price,
+      capacity: show.capacity,
+      occupiedSpots: occupied,
       availableSpots: show.capacity - occupied,
-      id: show.id
     };
   }
 }

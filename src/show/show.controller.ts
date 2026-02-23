@@ -31,8 +31,8 @@ export class ShowController {
 
   @Public()
   @Get('shows')
-  findAll(@Query('month') month?: string) {
-    return this.showService.findAll(month);
+  findAll(@Query('month') month?: string, @Query('status') status?:string) {
+    return this.showService.findAll(month,status);
   }
 
   @Public()

@@ -1,20 +1,59 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { CreateShowDto } from './dto/create-show.dto';
-import { UpdateShowDto } from './dto/update-show.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Show } from './entities/show.entity';
+import { Show, ShowStatus } from './entities/show.entity';
 import { Band } from 'src/band/entities/band.entity';
-import { Repository } from 'typeorm';
+import { Brackets, Repository } from 'typeorm';
 import { MoreThanOrEqual } from 'typeorm';
 import { MONTS_MAPS } from './constants/constants';
 import { ReservationStatus } from 'src/reservations/entities/reservation.entity';
+import { Cron, CronExpression } from '@nestjs/schedule';
 
 @Injectable()
 export class ShowService {
+    private readonly logger = new Logger(ShowService.name);
   constructor(
     @InjectRepository(Show) private showRepository: Repository<Show>,
     @InjectRepository(Band) private bandRepository: Repository<Band>,
   ) {}
+
+
+  @Cron(CronExpression.EVERY_5_MINUTES)
+  async handleAutoFinishShows() {
+    this.logger.debug('Verificando shows para finalizar...');
+
+    const now = new Date();
+    const currentDate = now.toISOString().split('T')[0]; 
+    const currentTime = now.toLocaleTimeString('en-GB', { 
+      hour: '2-digit', 
+      minute: '2-digit', 
+      hour12: false 
+    }); 
+
+    try {
+      const result = await this.showRepository
+        .createQueryBuilder()
+        .update(Show)
+        .set({ status: ShowStatus.FINALIZADO })
+        .where('status = :status', { status: ShowStatus.PUBLICADO })
+        .andWhere(
+          new Brackets((qb) => {
+            qb.where('date < :currentDate', { currentDate }) 
+              .orWhere(
+                '(date = :currentDate AND endTime <= :currentTime)', 
+                { currentDate, currentTime }
+              );
+          }),
+        )
+        .execute();
+
+      if (result.affected) {
+        this.logger.debug(`Éxito: Se finalizaron ${result.affected} shows automáticamente.`);
+      }
+    } catch (error) {
+      this.logger.error('Error en el cron job de shows', error);
+    }
+  }
   async create(createShowDto: CreateShowDto) {
     const band = await this.bandRepository.findOneBy({
       id: createShowDto.bandId,
@@ -28,32 +67,35 @@ export class ShowService {
     return await this.showRepository.save(newShow);
   }
 
-  async findAll(month?: string) {
-    // 1. Obtenemos la fecha de "hoy" al inicio del día (00:00:00)
-    // Esto asegura que si hoy hay un show a la noche, todavía aparezca.
-    const today = new Date();
-    today.setUTCHours(0, 0, 0, 0);
-
-    const query = this.showRepository
-      .createQueryBuilder('show')
-      .leftJoinAndSelect('show.band', 'band')
-      .leftJoinAndSelect('show.reservations', 'reservations')
-      // FILTRO CLAVE: Solo shows de hoy en adelante
-      .where('show.date >= :today', { today })
-      .orderBy('show.date', 'ASC');
-
-    if (month) {
-      const monthNumber = MONTS_MAPS[month.toUpperCase()];
-      if (monthNumber) {
-        query.andWhere('EXTRACT(MONTH FROM show.date) = :monthNumber', {
-          monthNumber,
-        });
-      }
+ async findAll(month?: string, status?: string) {
+  const today = new Date();
+  today.setUTCHours(0, 0, 0, 0);
+  const query = this.showRepository
+    .createQueryBuilder('show')
+    .leftJoinAndSelect('show.band', 'band')
+    .leftJoinAndSelect('show.reservations', 'reservations')
+    .orderBy('show.date', 'ASC');
+  
+  if (status) {
+    if (status !== 'TODOS') {
+      query.andWhere('show.status = :status', { status });
     }
-
-    const shows = await query.getMany();
-    return shows.map(show => this.mapShowResponse(show)); 
+  } 
+  else {
+    query.andWhere('show.status = :pub', { pub: ShowStatus.PUBLICADO });
+    query.andWhere('show.date >= :today', { today });
   }
+
+  if (month) {
+    const monthNumber = MONTS_MAPS[month.toUpperCase()];
+    if (monthNumber) {
+      query.andWhere('EXTRACT(MONTH FROM show.date) = :monthNumber', { monthNumber });
+    }
+  }
+
+  const shows = await query.getMany();
+  return shows.map(show => this.mapShowResponse(show)); 
+}
   async findUpcoming() {
     const today = new Date();
     today.setUTCHours(0, 0, 0, 0);
@@ -143,8 +185,11 @@ export class ShowService {
       imageDekstop: show.band.imgDesktop,
       time: `${show.startTime} — ${show.endTime}`, 
       availableSpots: show.capacity - occupied,
+      capacity: show.capacity,
+      occupied,
       price: show.price,
-      bandId:show.band.id
+      bandId:show.band.id,
+      status: show.status
     };
   }
 
