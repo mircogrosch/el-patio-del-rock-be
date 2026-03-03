@@ -17,16 +17,20 @@ import { UsersModule } from './users/users.module';
 import { User } from './users/entities/user.entity';
 import { DashboardModule } from './dashboard/dashboard.module';
 import { CloudinaryModule } from './cloudinary/cloudinary.module';
+import { join } from 'path';
+import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handlebars.adapter';
+import { AppconfigModule } from './appconfig/appconfig.module';
+import { AppConfig } from './appconfig/entities/appconfig.entity';
 @Module({
   imports: [
     ConfigModule.forRoot({
-      isGlobal:true
+      isGlobal: true,
     }),
     ScheduleModule.forRoot(),
     TypeOrmModule.forRoot({
       type: 'postgres',
       url: process.env.DATABASE_URL,
-      entities: [Band, Show, Reservation,User],
+      entities: [Band, Show, Reservation, User, AppConfig],
       synchronize: true, // ¡Ojo! Solo para desarrollo, crea las tablas automáticamente
       ssl: {
         rejectUnauthorized: false,
@@ -45,6 +49,13 @@ import { CloudinaryModule } from './cloudinary/cloudinary.module';
       defaults: {
         from: process.env.SMTP_FROM,
       },
+      template: {
+        dir: join(__dirname, 'mail/templates'),
+        adapter: new HandlebarsAdapter(),
+        options: {
+          strict: true,
+        },
+      },
     }),
     BandModule,
     ShowModule,
@@ -54,7 +65,8 @@ import { CloudinaryModule } from './cloudinary/cloudinary.module';
     AuthModule,
     UsersModule,
     DashboardModule,
-    CloudinaryModule
+    CloudinaryModule,
+    AppconfigModule,
   ],
 })
 export class AppModule {}

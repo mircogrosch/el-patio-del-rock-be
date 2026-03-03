@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #000000; color: #ffffff; margin: 0; padding: 0; }
+    .container { max-width: 600px; margin: 0 auto; padding: 40px 20px; background-color: #0a0a0a; border: 1px solid #27272a; }
+    .header { text-align: center; margin-bottom: 40px; }
+    .logo { font-size: 24px; font-weight: 900; text-transform: uppercase; letter-spacing: -1px; color: #ffffff; }
+    .highlight { color: #dc2626; }
+    .content { line-height: 1.6; color: #a1a1aa; font-size: 14px; text-align: center; }
+    .button-container { text-align: center; margin: 40px 0; }
+    .button { background-color: #dc2626; color: #ffffff !important; padding: 15px 30px; text-decoration: none; font-weight: 900; text-transform: uppercase; font-size: 12px; letter-spacing: 2px; border-radius: 2px; display: inline-block; }
+    .footer { text-align: center; font-size: 10px; color: #52525b; margin-top: 40px; font-family: monospace; text-transform: uppercase; }
+    .token-info { font-size: 10px; color: #71717a; margin-top: 20px; font-style: italic; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="logo">PATIO <span class="highlight">ADMIN</span></div>
+    </div>
+    
+    <div class="content">
+      <p>HOLA, <strong>{{username}}</strong></p>
+      <p>RECIBIMOS UNA SOLICITUD PARA RESTABLECER TU ACCESO AL PANEL DE CONTROL DE EL PATIO DEL ROCK.</p>
+      <p>SI NO FUISTE VOS, PODÉS IGNORAR ESTE MENSAJE TRANQUILAMENTE.</p>
+    </div>
+
+    <div class="button-container">
+      <a href="{{url}}" class="button">RECUPERAR CONTRASEÑA</a>
+    </div>
+
+    <div class="content">
+      <p class="token-info">* ESTE LINK EXPIRA EN 15 MINUTOS POR SEGURIDAD.</p>
+    </div>
+
+    <div class="footer">
+      --- EL PATIO DEL ROCK / GESTIÓN DE ACCESOS ---<br>
+      TREVELIN, CHUBUT, ARGENTINA
+    </div>
+  </div>
+</body>
+</html>

@@ -14,6 +14,15 @@ export class User {
   @Column()
   rol: string;
 
+  @Column({type:'varchar', unique: true, nullable: true })
+  recoveryEmail: string; 
+
+  @Column({type:'varchar', nullable: true, select: false })
+  resetPasswordToken: string | null; 
+
+  @Column({ type: 'timestamp', nullable: true, select: false })
+  resetPasswordExpires: Date | null; 
+
   @CreateDateColumn()
   createdAt: Date;
 }

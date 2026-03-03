@@ -3,9 +3,9 @@ import { PaymentsService } from './payments.service';
 import { PaymentsController } from './payments.controller';
 import { ConfigModule } from '@nestjs/config';
 import { ReservationsModule } from 'src/reservations/reservations.module';
-
+import { AppconfigModule } from 'src/appconfig/appconfig.module';
 @Module({
-  imports:[ConfigModule,forwardRef(() => ReservationsModule)],
+  imports:[ConfigModule,forwardRef(() => ReservationsModule), AppconfigModule],
   controllers: [PaymentsController],
   providers: [PaymentsService],
   exports: [PaymentsService],

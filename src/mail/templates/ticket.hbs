@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    body { font-family: 'Helvetica', Arial, sans-serif; background-color: #050505; color: #ffffff; margin: 0; padding: 0; }
+    .wrapper { max-width: 500px; margin: 20px auto; background-color: #0a0a0a; border: 1px solid #27272a; padding: 30px; }
+    .header { text-align: center; border-bottom: 2px solid #dc2626; padding-bottom: 20px; margin-bottom: 20px; }
+    .header h1 { text-transform: uppercase; letter-spacing: -1px; margin: 0; font-size: 28px; color: #ffffff; }
+    .highlight { color: #dc2626; }
+    .res-id { font-size: 10px; color: #71717a; text-transform: uppercase; letter-spacing: 2px; margin-top: 5px; }
+    .show-info { margin-bottom: 25px; }
+    .show-info h2 { margin: 0; font-size: 22px; color: #f4f4f5; text-transform: uppercase; }
+    .date-time { margin: 5px 0; color: #dc2626; font-weight: bold; font-family: monospace; }
+    .details { margin: 0; color: #a1a1aa; font-size: 14px; }
+    .qr-container { background-color: #ffffff; padding: 20px; text-align: center; border-radius: 2px; margin: 20px 0; }
+    .qr-img { width: 200px; height: 200px; }
+    .qr-text { color: #000000; font-size: 10px; font-weight: 900; margin-top: 10px; text-transform: uppercase; letter-spacing: 1px; }
+    .rules-box { background-color: #111111; padding: 20px; border-left: 4px solid #dc2626; margin-top: 30px; }
+    .rules-title { margin-top: 0; font-size: 14px; text-transform: uppercase; color: #dc2626; font-weight: 900; }
+    .rules-list { font-size: 12px; color: #d4d4d8; padding-left: 18px; line-height: 1.6; margin: 0; }
+    .footer { margin-top: 30px; text-align: center; border-top: 1px solid #18181b; pt: 20px; }
+    .footer-text { font-size: 9px; color: #52525b; text-transform: uppercase; letter-spacing: 1px; }
+    a { color: #dc2626; text-decoration: none; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <div class="header">
+      <h1>¡Estás <span class="highlight">adentro</span>!</h1>
+      <p class="res-id">Confirmación de Reserva #{{reservationId}}</p>
+    </div>
+
+    <div class="show-info">
+      <h2>{{showName}}</h2>
+      <p class="date-time">{{showDate}} — {{showTime}} HS</p>
+      <p class="details">{{spots}} ENTRADAS — TOTAL: ${{totalPrice}}</p>
+    </div>
+
+    <div class="qr-container">
+      <img src="cid:ticket_qr" class="qr-img" alt="QR Code" />
+      <p class="qr-text">Presentá este código en la puerta</p>
+    </div>
+
+    <div class="rules-box">
+      <h3 class="rules-title">Reglas de la Casa:</h3>
+      <ul class="rules-list">
+        {{#each rules}}
+          <li>{{this}}</li>
+        {{/each}}
+        <li>Para cambios, contactanos a <a href="mailto:{{contactEmail}}">{{contactEmail}}</a></li>
+      </ul>
+    </div>
+
+    <div class="footer">
+      <p class="footer-text">EL PATIO DEL ROCK — {{address}}</p>
+    </div>
+  </div>
+</body>
+</html>
