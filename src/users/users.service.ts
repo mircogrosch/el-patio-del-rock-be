@@ -71,7 +71,7 @@ export class UsersService implements OnModuleInit {
     user.resetPasswordExpires = new Date(Date.now() + 15 * 60 * 1000); 
     await this.userRepo.save(user);
     const baseUrl = process.env.PASSWORD_RESET_URL
-    const resetUrl = `${baseUrl}/reset-password?token=${token}`;
+    const resetUrl = `${baseUrl}?token=${token}`;
     
     await this.mailerService.sendMail({
       to: user.recoveryEmail,
