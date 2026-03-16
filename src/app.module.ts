@@ -21,6 +21,7 @@ import { join } from 'path';
 import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handlebars.adapter';
 import { AppconfigModule } from './appconfig/appconfig.module';
 import { AppConfig } from './appconfig/entities/appconfig.entity';
+import { ReportsModule } from './reports/reports.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -67,6 +68,7 @@ import { AppConfig } from './appconfig/entities/appconfig.entity';
     DashboardModule,
     CloudinaryModule,
     AppconfigModule,
+    ReportsModule,
   ],
 })
 export class AppModule {}
